@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - 00-namespace.yaml
+  - 01-resourcequota.yaml
+  - 02-limitrange.yaml
+  - 03-rbac.yaml
+  - 10-configmap.yaml
+  - 11-secret.yaml
+  - 20-mysql-pvc.yaml
+  - 21-mysql-deployment.yaml
+  - 22-mysql-service.yaml
+  - 30-php-deployment.yaml
+  - 31-php-service.yaml
+  - 32-php-ingress.yaml
+  - 33-php-hpa.yaml

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php
+  namespace: cp
+  labels: {app: php}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1          # 1 pod en plus pendant la mise à jour
+      maxUnavailable: 0    # jamais de pod en moins : pas de coupure
+  selector:
+    matchLabels: {app: php}
+  template:
+    metadata:
+      labels: {app: php}
+    spec:
+      serviceAccountName: cp-app
+      containers:
+        - name: php
+          image: ahu/php-cp:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef: {name: cp-config}
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: cp-secret, key: DB_PASSWORD}
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 200m, memory: 128Mi}
+          readinessProbe:
+            httpGet: {path: /, port: 80}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /, port: 80}
+            initialDelaySeconds: 15
+            periodSeconds: 20

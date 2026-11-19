@@ -1,0 +1,24 @@
+# Valeurs par défaut / bornes par conteneur (évite un pod sans requests/limits)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cp-limits
+  namespace: cp
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: 50m
+        memory: 64Mi
+      default:
+        cpu: 200m
+        memory: 128Mi
+      max:
+        cpu: 500m
+        memory: 512Mi
+      min:
+        cpu: 10m
+        memory: 16Mi
+    - type: PersistentVolumeClaim
+      max:
+        storage: 1Gi

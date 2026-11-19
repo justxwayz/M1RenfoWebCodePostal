@@ -1,0 +1,82 @@
+# Gestion des accès (RBAC) limitée au namespace "cp"
+# - cp-app      : compte de service des pods (aucun droit, token non monté)
+# - cp-viewer   : lecture seule (pods, logs, services, deployments, hpa...)
+# - cp-deployer : peut mettre à jour les workloads (rolling update, scale)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cp-app
+  namespace: cp
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cp-viewer
+  namespace: cp
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cp-deployer
+  namespace: cp
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cp-viewer
+  namespace: cp
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "endpoints", "configmaps", "persistentvolumeclaims", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cp-deployer
+  namespace: cp
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "configmaps", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "deployments/scale", "replicasets"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cp-viewer
+  namespace: cp
+subjects:
+  - kind: ServiceAccount
+    name: cp-viewer
+    namespace: cp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cp-viewer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cp-deployer
+  namespace: cp
+subjects:
+  - kind: ServiceAccount
+    name: cp-deployer
+    namespace: cp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cp-deployer
