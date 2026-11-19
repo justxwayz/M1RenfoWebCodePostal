@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-data-cp
-  namespace: cp
+  namespace: ahu
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:

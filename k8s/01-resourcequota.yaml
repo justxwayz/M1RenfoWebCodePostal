@@ -1,9 +1,9 @@
-# Quota global du namespace "cp" (environnement faible performance)
+# Quota global du namespace "ahu" (environnement faible performance)
 apiVersion: v1
 kind: ResourceQuota
 metadata:
   name: cp-quota
-  namespace: cp
+  namespace: ahu
 spec:
   hard:
     pods: "6"

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: php
-  namespace: cp
+  namespace: ahu
   labels: {app: php}
 spec:
   replicas: 1

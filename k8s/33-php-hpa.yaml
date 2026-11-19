@@ -3,7 +3,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: php
-  namespace: cp
+  namespace: ahu
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

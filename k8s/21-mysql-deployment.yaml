@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
-  namespace: cp
+  namespace: ahu
   labels: {app: mysql}
 spec:
   replicas: 1

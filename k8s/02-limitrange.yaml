@@ -3,7 +3,7 @@ apiVersion: v1
 kind: LimitRange
 metadata:
   name: cp-limits
-  namespace: cp
+  namespace: ahu
 spec:
   limits:
     - type: Container
