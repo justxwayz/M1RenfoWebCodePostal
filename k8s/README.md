@@ -48,3 +48,27 @@ Avec 1 seul réplica, le drain provoque une courte coupure (le pod est recréé 
     kubectl -n cp auth can-i get pods --as=system:serviceaccount:cp:cp-viewer      # yes
     kubectl -n cp auth can-i delete pods --as=system:serviceaccount:cp:cp-viewer   # no
     kubectl -n cp auth can-i patch deploy --as=system:serviceaccount:cp:cp-deployer # yes
+
+## Où trouver quoi
+
+| Intitulé | Description | Utilité | Chemin | Lancer / vérifier |
+|---|---|---|---|---|
+| Namespace | Espace isolé `cp` pour tout le projet | Isoler et appliquer quotas/RBAC | `k8s/00-namespace.yaml` | `kubectl apply -f k8s/00-namespace.yaml` |
+| ResourceQuota | Plafond global du namespace (pods, CPU, mémoire, 1Gi) | Empêcher de dépasser les ressources | `k8s/01-resourcequota.yaml` | `kubectl -n cp describe quota` |
+| LimitRange | Requests/limits par défaut et bornes par conteneur | Aucun pod sans limites | `k8s/02-limitrange.yaml` | `kubectl -n cp describe limitrange` |
+| RBAC | ServiceAccounts, Roles et RoleBindings | Gérer les accès (lecture / déploiement) | `k8s/03-rbac.yaml` | `kubectl -n cp auth can-i get pods --as=system:serviceaccount:cp:cp-viewer` |
+| ConfigMap | Variables DB (hôte, nom, user, port 3306) | Configurer l'appli sans rebuild | `k8s/10-configmap.yaml` | `kubectl -n cp get cm cp-config -o yaml` |
+| Secret | Mot de passe MySQL | Séparer les données sensibles | `k8s/11-secret.yaml` | `kubectl -n cp get secret cp-secret` |
+| MySQL PVC | Volume persistant de 1Gi | Conserver la base | `k8s/20-mysql-pvc.yaml` | `kubectl -n cp get pvc` |
+| MySQL Deployment | 1 pod `ahu/mysql-cp`, stratégie Recreate | Base de données | `k8s/21-mysql-deployment.yaml` | `kubectl -n cp logs deploy/mysql` |
+| MySQL Service | Service interne `mysql:3306` | Accès à la base depuis PHP | `k8s/22-mysql-service.yaml` | `kubectl -n cp get svc mysql` |
+| PHP Deployment | 1 pod `ahu/php-cp`, RollingUpdate (maxSurge 1, maxUnavailable 0) | Application web | `k8s/30-php-deployment.yaml` | `kubectl -n cp set image deploy/php php=ahu/php-cp:v2` puis `kubectl -n cp rollout status deploy/php` |
+| PHP Service | Service interne `php:80` | Exposer l'appli dans le cluster | `k8s/31-php-service.yaml` | `kubectl -n cp port-forward svc/php 8080:80` |
+| Ingress | Hôte `cp.local` vers le service PHP | Accès depuis l'extérieur | `k8s/32-php-ingress.yaml` | `kubectl -n cp get ingress` |
+| HPA | Autoscaling 1 à 3 pods à 70 % CPU | Absorber la charge | `k8s/33-php-hpa.yaml` | `kubectl -n cp get hpa php -w` |
+| Kustomization | Liste ordonnée de tous les manifestes | Tout déployer en une commande | `k8s/kustomization.yaml` | `kubectl apply -k k8s/` |
+| Maintenance | cordon / drain / uncordon, contextes, tests | Mise à jour ou arrêt d'un nœud | `k8s/README.md` | `kubectl cordon <noeud>` puis `kubectl drain <noeud> --ignore-daemonsets --delete-emptydir-data` puis `kubectl uncordon <noeud>` |
+| Docker Compose (dev) | Lancement local PHP + MySQL | Tester sans Kubernetes | `docker-compose.yml`, `.env.example` | `cp .env.example .env && docker compose up -d --build` |
+| Docker Compose (prod) | Images Docker Hub sans build | Déploiement simple sur serveur | `docker-compose.prod.yml` | `docker compose -f docker-compose.prod.yml up -d` |
+| Images | Dockerfiles PHP et MySQL (dump `cp.sql`) | Construire `ahu/php-cp` et `ahu/mysql-cp` | `php/Dockerfile`, `mysql/Dockerfile` | `docker compose build && docker compose push` |
+| Code appli | Pages PHP et connexion PDO | Recherche de codes postaux + historique | `php/www/` | http://localhost:8080 |
